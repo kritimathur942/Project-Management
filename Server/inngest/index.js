@@ -56,5 +56,81 @@ const syncUserUpdation = inngest.createFunction(
     }
 )
 
+
+//workspace data to datbase
+const syncWorkspaceCreation = inngest.createFunction(
+    {id: 'sync-workspace-from-clerk'},
+    {event: 'clerk/organization.created'},
+    async ({ event }) => {
+        const {data} = event;
+        await prisma.workspace.create({
+            data: {
+                id: data.id,
+                name: data.name,
+                slug: data.slug,
+                ownerId: data.created_by,
+                image_url: data.image_url,
+            }
+        })
+      //admin
+      await prisma.workspaceMember.create({
+        data:{
+            userId: data.created_by,
+            workspaceId: data.id,
+            role: "ADMIN"
+        }
+      })
+
+    }
+)
+//update workspace data to database 
+const syncWorkspaceUpdation = inngest.createFunction(
+    {id: 'update-workspace-from-clerk'},
+    {event: 'clerk/organization.updated'},
+    async({event})=> {
+        const {data} = event;
+        await prisma.workspace.update({
+            where: {
+                id: data.id
+            },
+            data: {
+                name: data.name,
+                slug: data.slug,
+                image_url: data.image_url,
+            }
+        })
+    }
+)
+
+//deletion
+const syncWorkspaceDeletion= inngest.createFunction(
+    {id: 'delete-workspace-with-clerk'},
+    {event: 'clerk/organization.deleted'},
+    async({event})=> {
+        const {data} = event;
+        await prisma.workspace.delete({
+            where: {
+                id: data.id
+            }
+        })
+    }
+)
+
+//workspace member data to database 
+const syncWorkspaceMemberCreation= inngest.createFunction(
+    {id: 'delete-workspace-member-from-clerk'},
+    {event: 'clerk/organizationInvitation.accepted'},
+    async({event})=> {
+        const {data} = event;
+        await prisma.workspaceMember.create({
+            data: {
+                userId: data.user_id,
+                workspace: data.organization_id,
+                role: String(data.role_name).toUpperCase(),
+            }
+        })
+    }
+)
+
 // Create an empty array where we'll export future Inngest functions
-export const functions = [syncUserCreation, syncUserDeletion, syncUserUpdation];
+export const functions = [syncUserCreation, syncUserDeletion, syncUserUpdation, syncWorkspaceCreation, syncWorkspaceDeletion, syncWorkspaceMemberCreation, syncWorkspaceUpdation];
