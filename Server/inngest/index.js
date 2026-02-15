@@ -1,5 +1,5 @@
 import { Inngest } from "inngest";
-import prisma from "../configs/prism.js";
+import prisma from "/Users/kritimathur/Desktop/Project Management/Server/configs/prisma.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "project-management" });
@@ -31,7 +31,7 @@ const syncUserDeletion = inngest.createFunction(
         const {data} = event 
         await prisma.user.delete({
             where: {
-                id: data.id,
+                id: data.id
             }
         })
     }
